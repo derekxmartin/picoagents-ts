@@ -29,7 +29,8 @@ export class OpenAIChatCompletionClient extends BaseChatCompletionClient {
   static componentProviderOverride =
     "picoagents/llm/OpenAIChatCompletionClient";
 
-  private client: InstanceType<typeof import("openai").default>;
+  private client: any; // OpenAI client (lazily initialised)
+  private clientPromise: Promise<any> | null = null;
   private baseUrl?: string;
   private organization?: string;
 
@@ -50,15 +51,26 @@ export class OpenAIChatCompletionClient extends BaseChatCompletionClient {
     super(model, apiKey, rest);
     this.baseUrl = baseUrl;
     this.organization = organization;
+  }
 
-    // Lazy-import OpenAI to allow the file to be loaded without the package
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const OpenAI = require("openai").default ?? require("openai");
-    this.client = new OpenAI({
-      apiKey,
-      baseURL: baseUrl,
-      organization,
-    });
+  /**
+   * Lazily import and instantiate the OpenAI SDK client.
+   * Uses dynamic import() so the module works in both CJS and ESM.
+   */
+  private async ensureClient(): Promise<any> {
+    if (this.client) return this.client;
+    if (!this.clientPromise) {
+      this.clientPromise = import("openai").then((mod) => {
+        const OpenAI = mod.default ?? mod;
+        this.client = new OpenAI({
+          apiKey: this.apiKey,
+          baseURL: this.baseUrl,
+          organization: this.organization,
+        });
+        return this.client;
+      });
+    }
+    return this.clientPromise;
   }
 
   async create(
@@ -72,6 +84,7 @@ export class OpenAIChatCompletionClient extends BaseChatCompletionClient {
     } = {}
   ): Promise<ChatCompletionResult> {
     try {
+      await this.ensureClient();
       const startTime = Date.now();
 
       const apiMessages = this.convertMessagesToApiFormat(messages);
@@ -200,6 +213,8 @@ export class OpenAIChatCompletionClient extends BaseChatCompletionClient {
     } = {}
   ): AsyncGenerator<ChatCompletionChunk, void, undefined> {
     try {
+      await this.ensureClient();
+
       const apiMessages = this.convertMessagesToApiFormat(messages);
 
       const requestParams: Record<string, unknown> = {

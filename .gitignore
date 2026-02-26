@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Frontend build (generated from src/webui/frontend/)
+src/webui/ui/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+coverage/
+*.lcov
+
+# Temp
+*.tsbuildinfo
+.claude/

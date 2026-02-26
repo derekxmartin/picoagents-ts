@@ -36,7 +36,8 @@ export class AnthropicChatCompletionClient extends BaseChatCompletionClient {
   static componentProviderOverride =
     "picoagents/llm/AnthropicChatCompletionClient";
 
-  private client: any; // Anthropic client
+  private client: any; // Anthropic client (lazily initialised)
+  private clientPromise: Promise<any> | null = null;
   private baseUrl?: string;
 
   constructor(options: {
@@ -48,14 +49,25 @@ export class AnthropicChatCompletionClient extends BaseChatCompletionClient {
     const { model = "claude-sonnet-4-5", apiKey, baseUrl, ...rest } = options;
     super(model, apiKey, rest);
     this.baseUrl = baseUrl;
+  }
 
-    // Lazy-import Anthropic to allow the file to be loaded without the package
-    const Anthropic =
-      require("@anthropic-ai/sdk").default ?? require("@anthropic-ai/sdk");
-    this.client = new Anthropic({
-      apiKey,
-      baseURL: baseUrl,
-    });
+  /**
+   * Lazily import and instantiate the Anthropic SDK client.
+   * Uses dynamic import() so the module works in both CJS and ESM.
+   */
+  private async ensureClient(): Promise<any> {
+    if (this.client) return this.client;
+    if (!this.clientPromise) {
+      this.clientPromise = import("@anthropic-ai/sdk").then((mod) => {
+        const Anthropic = mod.default ?? mod;
+        this.client = new Anthropic({
+          apiKey: this.apiKey,
+          baseURL: this.baseUrl,
+        });
+        return this.client;
+      });
+    }
+    return this.clientPromise;
   }
 
   async create(
@@ -69,6 +81,7 @@ export class AnthropicChatCompletionClient extends BaseChatCompletionClient {
     } = {}
   ): Promise<ChatCompletionResult> {
     try {
+      await this.ensureClient();
       const startTime = Date.now();
 
       // Convert messages to Anthropic format
@@ -194,6 +207,8 @@ export class AnthropicChatCompletionClient extends BaseChatCompletionClient {
     } = {}
   ): AsyncGenerator<ChatCompletionChunk, void, undefined> {
     try {
+      await this.ensureClient();
+
       // Convert messages to Anthropic format
       const apiMessages = this.convertMessagesToAnthropicFormat(messages);
 

@@ -108,7 +108,7 @@ npx vitest run src/__tests__/test-orchestration
 npx vitest run src/__tests__/test-termination
 ```
 
-**653 tests** across 44 test files — all passing.
+On October 18, 2026, a clean install on Node 24.19.0 passed **732 tests across 45 files** and `npm run build`. The current [CI workflow](.github/workflows/ci.yml) reruns the suite and builds the frontend. These checks use test doubles; they do not certify live model-provider or browser integrations.
 
 ## Building the Frontend
 
@@ -126,4 +126,4 @@ The original Python framework, frontend React application, and architectural des
 
 ## License
 
-See the [original repository](https://github.com/victordibia/designing-multiagent-systems) for license terms.
+See [LICENSING.md](LICENSING.md) for the upstream Apache 2.0 terms, attribution, and the unresolved license scope of port-specific modifications.

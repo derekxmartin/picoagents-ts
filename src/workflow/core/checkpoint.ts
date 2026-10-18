@@ -164,7 +164,8 @@ export class InMemoryCheckpointStore extends CheckpointStore {
       .map((id) => this.checkpoints.get(id))
       .filter((cp): cp is WorkflowCheckpoint => cp !== undefined);
     if (!cps.length) return undefined;
-    cps.sort(
+    // Stable sorting preserves this reversed save order when timestamps tie.
+    cps.reverse().sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
     );
     return cps[0];
@@ -197,7 +198,7 @@ export class InMemoryCheckpointStore extends CheckpointStore {
     }
 
     const metas = cps.map((cp) => metadataFromCheckpoint(cp));
-    metas.sort(
+    metas.reverse().sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
     );
     return metas.slice(0, limit);
@@ -217,7 +218,7 @@ export class InMemoryCheckpointStore extends CheckpointStore {
         (x): x is { id: string; cp: WorkflowCheckpoint } =>
           x.cp !== undefined
       );
-    cps.sort(
+    cps.reverse().sort(
       (a, b) => b.cp.createdAt.getTime() - a.cp.createdAt.getTime()
     );
     const toDelete = cps.slice(keepLastN);

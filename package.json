@@ -24,7 +24,7 @@
     "hono": "^4.12.3",
     "openai": "^4.60.0",
     "uuid": "^14.0.3",
-    "zod": "^3.23.0"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "playwright": "^1.45.0",

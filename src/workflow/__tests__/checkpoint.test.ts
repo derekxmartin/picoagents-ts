@@ -66,6 +66,23 @@ describe("InMemoryCheckpointStore", () => {
     expect(loaded).toBeUndefined();
   });
 
+  it("should prefer the last saved checkpoint when timestamps are equal", async () => {
+    const store = new InMemoryCheckpointStore();
+    const checkpoints = Array.from({ length: 3 }, () => makeCheckpoint());
+    for (const checkpoint of checkpoints) {
+      checkpoint.createdAt = new Date("2026-01-01T00:00:00.000Z");
+      await store.save(checkpoint);
+    }
+
+    const newestFirst = checkpoints.map((cp) => cp.checkpointId).reverse();
+    expect((await store.loadLatest("wf-1"))?.checkpointId).toBe(newestFirst[0]);
+    expect((await store.listMetadata("wf-1")).map((cp) => cp.checkpointId)).toEqual(newestFirst);
+    expect((await store.listMetadata()).map((cp) => cp.checkpointId)).toEqual(newestFirst);
+    expect(await store.cleanupOld("wf-1", 1)).toBe(2);
+    expect((await store.loadLatest("wf-1"))?.checkpointId).toBe(newestFirst[0]);
+    expect((await store.listMetadata("wf-1")).map((cp) => cp.checkpointId)).toEqual([newestFirst[0]]);
+  });
+
   it("should list metadata", async () => {
     const store = new InMemoryCheckpointStore();
     await store.save(makeCheckpoint("wf-1"));

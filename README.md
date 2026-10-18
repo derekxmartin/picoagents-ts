@@ -108,7 +108,7 @@ npx vitest run src/__tests__/test-orchestration
 npx vitest run src/__tests__/test-termination
 ```
 
-On October 18, 2026, a clean install on Node 24.19.0 passed **731 tests across 45 files** and `npm run build`. The current [CI workflow](.github/workflows/ci.yml) reruns the suite and builds the frontend. These checks use test doubles; they do not certify live model-provider or browser integrations.
+On October 18, 2026, a clean install on Node 24.19.0 passed **732 tests across 45 files** and `npm run build`. The current [CI workflow](.github/workflows/ci.yml) reruns the suite and builds the frontend. These checks use test doubles; they do not certify live model-provider or browser integrations.
 
 ## Building the Frontend
 
